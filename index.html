@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>MyMarket - Supermercado</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <meta name="theme-color" content="#0b7a75" />
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --card: #ffffff;
+      --text: #222222;
+      --muted: #777777;
+      --accent: #0b7a75;
+      --accent-soft: #e0f2f1;
+      --danger: #ff6b35;
+      --border: #dddddd;
+    }
+    body.dark {
+      --bg: #0b0f16;
+      --card: #151b24;
+      --text: #f2f4f8;
+      --muted: #a0a4b0;
+      --accent: #22c55e;
+      --accent-soft: #022c22;
+      --border: #2c3440;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 1rem;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .logo-img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .logo-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      background: transparent;
+    }
+    .logo-text-main {
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--accent);
+    }
+    .logo-text-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 0.8rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      margin-bottom: 0.8rem;
+      border: 1px solid var(--border);
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+    .controls {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 0.5rem;
+    }
+    label {
+      font-size: 0.85rem;
+    }
+    input[type="date"], input[type="text"] {
+      padding: 0.25rem 0.4rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.9rem;
+      background: var(--card);
+      color: var(--text);
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 0.4rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .btn-save { background: var(--accent); color: #fff; }
+    .btn-clear { background: #eeeeee; color: #444; }
+    body.dark .btn-clear { background: #222831; color: var(--muted); }
+    .btn-dark {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding-inline: 0.7rem;
+    }
+    .btn-dark span { font-size: 1.1rem; }
+    .btn-pdf {
+      background: #ffffff;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    body.dark .btn-pdf {
+      background: #111827;
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .hint { font-size: 0.75rem; color: var(--muted); }
+    .search-row {
+      margin-top: 0.4rem;
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+    }
+    .search-row label {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .search-row input[type="text"] { flex: 1; }
+    .category-row {
+      cursor: pointer;
+      background: var(--accent-soft);
+    }
+    .category-title {
+      font-weight: 700;
+      margin-top: 0.2rem;
+      margin-bottom: 0.2rem;
+      font-size: 0.85rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .chevron { font-size: 0.75rem; opacity: 0.8; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+    th, td {
+      padding: 0.25rem 0.2rem;
+      text-align: left;
+    }
+    th {
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    tbody tr:nth-child(odd):not(.category-row) {
+      background: rgba(0,0,0,0.015);
+    }
+    input[type="number"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0.15rem 0.25rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.8rem;
+      background: var(--card);
+      color: var(--text);
+    }
+    .item-row {
+      vertical-align: middle;
+      transition: background 0.15s ease, transform 0.15s ease;
+    }
+    .item-row.done td {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+    .item-row.anim {
+      animation: pop 0.25s ease;
+    }
+    @keyframes pop {
+      0% { transform: scale(1); background: rgba(34,197,94,0.08); }
+      50% { transform: scale(1.01); }
+      100% { transform: scale(1); background: transparent; }
+    }
+    .collapsed-indicator {
+      opacity: 0.7;
+      font-size: 0.7rem;
+    }
+    .totals {
+      margin-top: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .totals strong { color: var(--accent); }
+
+    /* Área especial para impresión simplificada */
+    #printArea {
+      display: none;
+      white-space: pre;
+      font-family: "Courier New", monospace;
+      font-size: 11pt;
+      color: #000;
+    }
+    body.print-mode #appRoot {
+      display: none;
+    }
+    body.print-mode #printArea {
+      display: block;
+    }
+
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        padding: 1rem;
+      }
+      #appRoot {
+        display: none !important;
+      }
+      #printArea {
+        display: block !important;
+      }
+    }
+
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at top, #0b7a75 0, #020617 50%, #000 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #f9fafb;
+      z-index: 999;
+      transition: opacity 0.4s ease;
+    }
+    #splash.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .splash-logo {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+    }
+    .splash-logo span { color: #22c55e; }
+    .splash-sub {
+      font-size: 0.9rem;
+      margin-top: 0.4rem;
+      opacity: 0.85;
+    }
+    .splash-spinner {
+      margin-top: 1rem;
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      border: 3px solid rgba(248,250,252,0.3);
+      border-top-color: #22c55e;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 600px) {
+      th:nth-child(1), td:nth-child(1) { width: 45%; }
+      th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; }
+      th:nth-child(3), td:nth-child(3) { width: 40%; }
+    }
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <div class="splash-logo">My<span>Market</span></div>
+    <div class="splash-sub">Preparando tu lista del súper...</div>
+    <div class="splash-spinner"></div>
+  </div>
+
+  <!-- Área que se usará SOLO para imprimir/guardar PDF -->
+  <div id="printArea"></div>
+
+  <!-- App normal -->
+  <div id="appRoot">
+    <header class="no-print">
+      <div class="logo-wrap">
+        <div class="logo-img">
+          <img src="icon-192.png" alt="MyMarket logo">
+        </div>
+        <div>
+          <div class="logo-text-main">MyMarket</div>
+          <div class="logo-text-sub">Checklist de Supermercado</div>
+        </div>
+      </div>
+      <button class="btn-dark" id="btnDark">
+        <span id="darkIcon">🌙</span>
+      </button>
+    </header>
+
+    <div class="card">
+      <div class="controls no-print">
+        <label for="fecha">
+          Fecha:
+          <input type="date" id="fecha" />
+        </label>
+        <button class="btn-save" id="btnGuardar">Guardar</button>
+        <button class="btn-clear" id="btnLimpiar">Borrar todo</button>
+        <button class="btn-pdf" id="btnPDF">Exportar PDF</button>
+      </div>
+      <div class="search-row no-print">
+        <label for="buscar">Buscar:</label>
+        <input type="text" id="buscar" placeholder="Escribe para filtrar productos..." />
+      </div>
+      <div class="hint no-print">
+        Marca lo que compraste, registra el precio actual, pliega categorías o busca por nombre. Los totales por categoría se calculan con los productos marcados. Usa "Exportar PDF" para generar una versión simplificada tipo factura con tus productos y precios.
+      </div>
+      <div class="totals" id="resumenCategorias"></div>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>✔</th>
+            <th>Precio actual</th>
+          </tr>
+        </thead>
+        <tbody id="tablaItems"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script>
+    const STORAGE_KEY = "mymarket_checklist_v3print";
+    const THEME_KEY = "mymarket_tema";
+    const COLLAPSE_KEY = "mymarket_colapsadas";
+    let clickSound = null;
+
+    function applyThemeFromStorage() {
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored === "dark") {
+        document.body.classList.add("dark");
+        const icon = document.getElementById("darkIcon");
+        if (icon) icon.textContent = "☀️";
+      }
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      const isDark = document.body.classList.contains("dark");
+      localStorage.setItem(THEME_KEY, isDark ? "dark" : "light");
+      const icon = document.getElementById("darkIcon");
+      icon.textContent = isDark ? "☀️" : "🌙";
+    }
+
+    function loadCollapseState() {
+      try {
+        const raw = localStorage.getItem(COLLAPSE_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw);
+      } catch(e) {
+        return {};
+      }
+    }
+
+    function saveCollapseState(state) {
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(state));
+    }
+
+    function buildTable() {
+      const tbody = document.getElementById("tablaItems");
+      tbody.innerHTML = "";
+
+      let saved = loadData();
+      const collapsedState = loadCollapseState();
+
+      Object.keys(DATA).forEach(categoria => {
+        const catRow = document.createElement("tr");
+        catRow.className = "category-row";
+        catRow.dataset.category = categoria;
+
+        const catCell = document.createElement("td");
+        catCell.colSpan = 3;
+
+        const titleDiv = document.createElement("div");
+        titleDiv.className = "category-title";
+
+        const chev = document.createElement("span");
+        chev.className = "chevron";
+        const isCollapsed = !!collapsedState[categoria];
+        chev.textContent = isCollapsed ? "▶" : "▼";
+
+        const textSpan = document.createElement("span");
+        textSpan.textContent = categoria;
+
+        const indicator = document.createElement("span");
+        indicator.className = "collapsed-indicator";
+        indicator.textContent = isCollapsed ? "(plegado)" : "";
+
+        titleDiv.appendChild(chev);
+        titleDiv.appendChild(textSpan);
+        titleDiv.appendChild(indicator);
+        catCell.appendChild(titleDiv);
+        catRow.appendChild(catCell);
+        tbody.appendChild(catRow);
+
+        DATA[categoria].forEach((producto, idx) => {
+          const id = categoria + "-" + idx;
+          const row = document.createElement("tr");
+          row.className = "item-row";
+          row.dataset.id = id;
+          row.dataset.category = categoria;
+          row.dataset.producto = producto;
+
+          const tdProd = document.createElement("td");
+          tdProd.textContent = producto;
+
+          const tdCheck = document.createElement("td");
+          tdCheck.style.textAlign = "center";
+          const chk = document.createElement("input");
+          chk.type = "checkbox";
+          chk.className = "chk-item";
+
+          const tdPrecio = document.createElement("td");
+          const inp = document.createElement("input");
+          inp.type = "number";
+          inp.min = "0";
+          inp.step = "0.01";
+          inp.placeholder = "0.00";
+          inp.className = "precio-item";
+
+          if (saved.items && saved.items[id]) {
+            chk.checked = !!saved.items[id].checked;
+            if (saved.items[id].price !== "") {
+              inp.value = saved.items[id].price;
+            }
+          }
+
+          chk.addEventListener("change", () => {
+            row.classList.toggle("done", chk.checked);
+            if (chk.checked) {
+              row.classList.add("anim");
+              setTimeout(() => row.classList.remove("anim"), 250);
+              if (clickSound) {
+                try { clickSound.currentTime = 0; clickSound.play(); } catch(e) {}
+              }
+            }
+            updateTotals();
+          });
+
+          inp.addEventListener("input", () => {
+            updateTotals();
+          });
+
+          if (chk.checked) {
+            row.classList.add("done");
+          }
+
+          tdCheck.appendChild(chk);
+          tdPrecio.appendChild(inp);
+          row.appendChild(tdProd);
+          row.appendChild(tdCheck);
+          row.appendChild(tdPrecio);
+          if (isCollapsed) {
+            row.style.display = "none";
+          }
+          tbody.appendChild(row);
+        });
+
+        catRow.addEventListener("click", () => {
+          const collapsedState = loadCollapseState();
+          const currentlyCollapsed = !!collapsedState[categoria];
+          const newState = !currentlyCollapsed;
+          collapsedState[categoria] = newState;
+          saveCollapseState(collapsedState);
+
+          const rows = tbody.querySelectorAll('tr.item-row[data-category="' + categoria + '"]');
+          rows.forEach(r => {
+            r.style.display = newState ? "none" : "";
+          });
+
+          const chevron = catRow.querySelector(".chevron");
+          const indicator = catRow.querySelector(".collapsed-indicator");
+          if (chevron) chevron.textContent = newState ? "▶" : "▼";
+          if (indicator) indicator.textContent = newState ? "(plegado)" : "";
+        });
+      });
+
+      const fechaInput = document.getElementById("fecha");
+      if (saved.fecha) {
+        fechaInput.value = saved.fecha;
+      } else {
+        const hoy = new Date().toISOString().slice(0, 10);
+        fechaInput.value = hoy;
+      }
+
+      updateTotals();
+    }
+
+    function updateTotals() {
+      const rows = document.querySelectorAll(".item-row");
+      const totals = {};
+      rows.forEach(row => {
+        const categoria = row.dataset.category;
+        const chk = row.querySelector(".chk-item");
+        const precioInput = row.querySelector(".precio-item");
+        const val = parseFloat(precioInput.value.replace(",", "."));
+        if (chk.checked && !isNaN(val)) {
+          totals[categoria] = (totals[categoria] || 0) + val;
+        }
+      });
+      const resumen = document.getElementById("resumenCategorias");
+      const categorias = Object.keys(totals);
+      if (categorias.length === 0) {
+        resumen.textContent = "Totales por categoría: aún no hay productos marcados.";
+        return;
+      }
+      const parts = categorias.map(cat => cat + ": $" + totals[cat].toFixed(2));
+      resumen.innerHTML = "<strong>Totales por categoría</strong>: " + parts.join(" &nbsp;•&nbsp; ");
+    }
+
+    function saveData() {
+      const rows = document.querySelectorAll(".item-row");
+      const itemsData = {};
+      rows.forEach(row => {
+        const id = row.dataset.id;
+        const chk = row.querySelector(".chk-item");
+        const precio = row.querySelector(".precio-item");
+        itemsData[id] = {
+          checked: chk.checked,
+          price: precio.value
+        };
+      });
+      const fecha = document.getElementById("fecha").value || "";
+      const payload = { fecha, items: itemsData };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      alert("Checklist guardado ✅");
+    }
+
+    function clearData() {
+      if (!confirm("¿Borrar todo el checklist y precios guardados?")) return;
+      localStorage.removeItem(STORAGE_KEY);
+      buildTable();
+    }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return { fecha: "", items: {} };
+        return JSON.parse(raw);
+      } catch (e) {
+        return { fecha: "", items: {} };
+      }
+    }
+
+    function applySearchFilter() {
+      const q = document.getElementById("buscar").value.toLowerCase().trim();
+      const tbody = document.getElementById("tablaItems");
+      const catRows = tbody.querySelectorAll(".category-row");
+      const itemRows = tbody.querySelectorAll(".item-row");
+
+      if (q === "") {
+        const collapsedState = loadCollapseState();
+        catRows.forEach(cr => cr.style.display = "");
+        itemRows.forEach(ir => {
+          const cat = ir.dataset.category;
+          const isCollapsed = !!collapsedState[cat];
+          ir.style.display = isCollapsed ? "none" : "";
+        });
+        return;
+      }
+
+      const visibleCategories = {};
+      itemRows.forEach(row => {
+        const prod = row.cells[0].textContent.toLowerCase();
+        if (prod.includes(q)) {
+          row.style.display = "";
+          visibleCategories[row.dataset.category] = true;
+        } else {
+          row.style.display = "none";
+        }
+      });
+      catRows.forEach(cr => {
+        const cat = cr.dataset.category;
+        cr.style.display = visibleCategories[cat] ? "" : "none";
+      });
+    }
+
+    function exportPDF() {
+      // Construimos un reporte en texto tipo factura y usamos window.print()
+      const fechaInput = document.getElementById("fecha");
+      const fecha = fechaInput.value || new Date().toISOString().slice(0,10);
+
+      const rows = document.querySelectorAll(".item-row");
+      const dataPorCategoria = {};
+      const totalesPorCategoria = {};
+      let totalGeneral = 0;
+
+      rows.forEach(row => {
+        const chk = row.querySelector(".chk-item");
+        if (!chk.checked) return;
+
+        const categoria = row.dataset.category;
+        const producto = row.dataset.producto;
+        const precioVal = parseFloat(row.querySelector(".precio-item").value.replace(",", ".") || "0") || 0;
+
+        if (!dataPorCategoria[categoria]) dataPorCategoria[categoria] = [];
+        dataPorCategoria[categoria].push({ producto, precio: precioVal });
+
+        totalesPorCategoria[categoria] = (totalesPorCategoria[categoria] || 0) + precioVal;
+        totalGeneral += precioVal;
+      });
+
+      if (Object.keys(dataPorCategoria).length === 0) {
+        alert("No hay productos marcados para exportar.");
+        return;
+      }
+
+      const lines = [];
+      lines.push("MyMarket - Lista de compra");
+      lines.push("Fecha: " + fecha);
+      lines.push("");
+
+      const maxProdLen = 28;
+
+      function formatLinea(prod, precio) {
+        let nombre = prod;
+        if (nombre.length > maxProdLen) {
+          nombre = nombre.slice(0, maxProdLen - 1) + "…";
+        }
+        const precioTxt = "$" + precio.toFixed(2);
+        const totalWidth = 40;
+        const dots = ".".repeat(Math.max(2, totalWidth - nombre.length - precioTxt.length));
+        return nombre + " " + dots + " " + precioTxt;
+      }
+
+      Object.keys(dataPorCategoria).forEach(categoria => {
+        const items = dataPorCategoria[categoria];
+        if (!items || items.length === 0) return;
+
+        lines.push(categoria.toUpperCase());
+        lines.push("-".repeat(categoria.length));
+        items.forEach(({ producto, precio }) => {
+          lines.push(formatLinea(producto, precio));
+        });
+        lines.push("Subtotal " + categoria + ": $" + totalesPorCategoria[categoria].toFixed(2));
+        lines.push("");
+      });
+
+      lines.push("TOTAL GENERAL: $" + totalGeneral.toFixed(2));
+      lines.push("");
+      lines.push("Generado con MyMarket ✔");
+
+      const printArea = document.getElementById("printArea");
+      printArea.textContent = lines.join("\n");
+
+      document.body.classList.add("print-mode");
+      window.print();
+      setTimeout(() => {
+        document.body.classList.remove("print-mode");
+      }, 500);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyThemeFromStorage();
+
+      if (window.Audio) {
+        clickSound = new Audio("click.wav");
+      }
+
+      document.getElementById("btnDark").addEventListener("click", toggleTheme);
+      document.getElementById("btnGuardar").addEventListener("click", saveData);
+      document.getElementById("btnLimpiar").addEventListener("click", clearData);
+      document.getElementById("btnPDF").addEventListener("click", exportPDF);
+      document.getElementById("buscar").addEventListener("input", applySearchFilter);
+
+      buildTable();
+
+      const splash = document.getElementById("splash");
+      setTimeout(() => {
+        splash.classList.add("hidden");
+        setTimeout(() => { splash.style.display = "none"; }, 400);
+      }, 800);
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+      }
+    });
+  </script>
+</body>
+</html>
