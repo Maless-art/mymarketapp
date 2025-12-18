@@ -435,6 +435,9 @@
           chk.type = "checkbox";
           chk.className = "chk-item";
 
+          chk.addEventListener("change", hapticTap);
+
+
           const tdPrecio = document.createElement("td");
           const inp = document.createElement("input");
           inp.type = "number";
@@ -700,6 +703,12 @@
         navigator.serviceWorker.register("service-worker.js");
       }
     });
+function hapticTap() {
+  if ("vibrate" in navigator) {
+    navigator.vibrate(18);
+  }
+}
+
   </script>
 </body>
 </html>
