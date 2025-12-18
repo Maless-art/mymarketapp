@@ -66,6 +66,24 @@
       font-size: 1.2rem;
       color: var(--accent);
     }
+.logo-text-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+/* SOLO MyMarket en negrita */
+.logo-text-main .app-name {
+  font-weight: 800; /* hereda el look original */
+}
+
+/* v1.1 SIN negrita */
+.logo-text-main .app-version {
+  font-weight: 400 !important;
+  font-size: 0.55em;
+  color: var(--muted);
+}
+
     .logo-text-sub {
       font-size: 0.8rem;
       color: var(--muted);
@@ -279,7 +297,30 @@
       th:nth-child(1), td:nth-child(1) { width: 45%; }
       th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; }
       th:nth-child(3), td:nth-child(3) { width: 40%; }
-    }
+/* ⭐ Favoritos apagado (como Exportar PDF) */
+button#btnFavoritos {
+  background: transparent !important;
+  border: 2px solid #0aa56f !important;
+  color: #0aa56f !important;
+}
+
+/* ⭐ Favoritos encendido (como Guardar) */
+button#btnFavoritos.activo {
+  background: #0aa56f !important;
+  border-color: #0aa56f !important;
+  color: #ffffff !important;
+}
+.logo-text-main .app-version {
+  font-size: 0.55em;
+  font-weight: 400 !important;   /* 👈 rompe la herencia */
+  color: var(--muted);
+  opacity: 0.8;
+  vertical-align: baseline;
+}
+
+
+
+
   </style>
 </head>
 <body>
@@ -300,10 +341,16 @@
           <img src="icon-192.png" alt="MyMarket logo">
         </div>
         <div>
-          <div class="logo-text-main">MyMarket</div>
-          <div class="logo-text-sub">Checklist de Supermercado</div>
+        <div class="logo-text-main">
+  <span class="app-name">MyMarket</span>
+  <span class="app-version">v1.1</span>
+</div>
+ <div class="logo-text-sub">Checklist de Supermercado</div>
         </div>
+
       </div>
+
+
       <button class="btn-dark" id="btnDark">
         <span id="darkIcon">🌙</span>
       </button>
@@ -318,6 +365,8 @@
         <button class="btn-save" id="btnGuardar">Guardar</button>
         <button class="btn-clear" id="btnLimpiar">Borrar todo</button>
         <button class="btn-pdf" id="btnPDF">Exportar PDF</button>
+	<button id="btnFavoritos">⭐ Favoritos</button>
+
       </div>
       <div class="search-row no-print">
         <label for="buscar">Buscar:</label>
@@ -345,10 +394,17 @@
 
   <script src="data.js"></script>
   <script>
+
+let favoritos = JSON.parse(localStorage.getItem("favoritos")) || {};
+
+let modoFavoritos = false;
+
+
     const STORAGE_KEY = "mymarket_checklist_v3print";
     const THEME_KEY = "mymarket_tema";
     const COLLAPSE_KEY = "mymarket_colapsadas";
     let clickSound = null;
+   
 
     function applyThemeFromStorage() {
       const stored = localStorage.getItem(THEME_KEY);
@@ -419,6 +475,8 @@
         tbody.appendChild(catRow);
 
         DATA[categoria].forEach((producto, idx) => {
+	if (modoFavoritos && !favoritos[producto]) return;
+
           const id = categoria + "-" + idx;
           const row = document.createElement("tr");
           row.className = "item-row";
@@ -426,14 +484,35 @@
           row.dataset.category = categoria;
           row.dataset.producto = producto;
 
-          const tdProd = document.createElement("td");
-          tdProd.textContent = producto;
+       const tdProd = document.createElement("td");
+
+	const star = document.createElement("span");
+	star.textContent = favoritos[producto] ? "⭐ " : "☆ ";
+	star.style.cursor = "pointer";
+
+	tdProd.appendChild(star);
+	tdProd.appendChild(document.createTextNode(producto));
+
+		star.addEventListener("click", (e) => {
+ 		 e.stopPropagation();
+
+  if (favoritos[producto]) {
+    delete favoritos[producto];
+  } else {
+    favoritos[producto] = true;
+  }
+
+  localStorage.setItem("favoritos", JSON.stringify(favoritos));
+  buildTable();
+});
+
 
           const tdCheck = document.createElement("td");
           tdCheck.style.textAlign = "center";
           const chk = document.createElement("input");
           chk.type = "checkbox";
           chk.className = "chk-item";
+	  chk.addEventListener("change", saveData);
 
           chk.addEventListener("change", hapticTap);
 
@@ -445,9 +524,11 @@
           inp.step = "0.01";
           inp.placeholder = "0.00";
           inp.className = "precio-item";
+	inp.addEventListener("change", saveData);
+
 
           if (saved.items && saved.items[id]) {
-            chk.checked = !!saved.items[id].checked;
+            chk.checked = saved.items[id].checked;
             if (saved.items[id].price !== "") {
               inp.value = saved.items[id].price;
             }
@@ -551,7 +632,7 @@
       const fecha = document.getElementById("fecha").value || "";
       const payload = { fecha, items: itemsData };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-      alert("Checklist guardado ✅");
+     
     }
 
     function clearData() {
@@ -679,30 +760,56 @@
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-      applyThemeFromStorage();
+  applyThemeFromStorage();
 
-      if (window.Audio) {
-        clickSound = new Audio("click.wav");
-      }
+  if (window.Audio) {
+    clickSound = new Audio("click.wav");
+  }
 
-      document.getElementById("btnDark").addEventListener("click", toggleTheme);
-      document.getElementById("btnGuardar").addEventListener("click", saveData);
-      document.getElementById("btnLimpiar").addEventListener("click", clearData);
-      document.getElementById("btnPDF").addEventListener("click", exportPDF);
-      document.getElementById("buscar").addEventListener("input", applySearchFilter);
+  document.getElementById("btnDark").addEventListener("click", toggleTheme);
+  document.getElementById("btnGuardar").addEventListener("click", saveData);
+  document.getElementById("btnLimpiar").addEventListener("click", clearData);
+  document.getElementById("btnPDF").addEventListener("click", exportPDF);
 
-      buildTable();
+  // ⭐ FAVORITOS
+  const btnFav = document.getElementById("btnFavoritos");
 
-      const splash = document.getElementById("splash");
-      setTimeout(() => {
-        splash.classList.add("hidden");
-        setTimeout(() => { splash.style.display = "none"; }, 400);
-      }, 800);
+btnFav.addEventListener("click", () => {
+  modoFavoritos = !modoFavoritos;
+
+  if (modoFavoritos) {
+    btnFav.classList.remove("btn-pdf");
+    btnFav.classList.add("btn-save");
+  } else {
+    btnFav.classList.remove("btn-save");
+    btnFav.classList.add("btn-pdf");
+  }
+
+  buildTable();
+  loadData();
+});
+
+
+  document.getElementById("buscar").addEventListener("input", applySearchFilter);
+
+  buildTable();
+  loadData();
+
+  // ✅ SPLASH DENTRO DEL DOMContentLoaded
+  const splash = document.getElementById("splash");
+  setTimeout(() => {
+    splash.classList.add("hidden");
+    setTimeout(() => {
+      splash.style.display = "none";
+    }, 400);
+  }, 800);
+});
+
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("service-worker.js");
       }
-    });
+ 
 function hapticTap() {
   if ("vibrate" in navigator) {
     navigator.vibrate(18);
