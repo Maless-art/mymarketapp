@@ -1,4 +1,4 @@
-const CACHE_NAME = "mymarket-cache-v3print";
+const CACHE_NAME = "mymarket-cache-v4print";
 const URLS_TO_CACHE = [
   "./",
   "./index.html",
