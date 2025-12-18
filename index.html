@@ -293,17 +293,19 @@
       animation: spin 0.8s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 600px) {
-      th:nth-child(1), td:nth-child(1) { width: 45%; }
-      th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; }
-      th:nth-child(3), td:nth-child(3) { width: 40%; }
+   @media (max-width: 600px) {
+  th:nth-child(1), td:nth-child(1) { width: 45%; }
+  th:nth-child(2), td:nth-child(2) { width: 15%; text-align: center; }
+  th:nth-child(3), td:nth-child(3) { width: 40%; }
+}
+
 /* ⭐ Favoritos apagado (como Exportar PDF) */
 button#btnFavoritos {
   background: transparent !important;
   border: 2px solid #0aa56f !important;
   color: #0aa56f !important;
 }
-
+}
 /* ⭐ Favoritos encendido (como Guardar) */
 button#btnFavoritos.activo {
   background: #0aa56f !important;
@@ -771,31 +773,20 @@ let modoFavoritos = false;
   document.getElementById("btnLimpiar").addEventListener("click", clearData);
   document.getElementById("btnPDF").addEventListener("click", exportPDF);
 
-  // ⭐ FAVORITOS
+  // ⭐ Favoritos
   const btnFav = document.getElementById("btnFavoritos");
-
-btnFav.addEventListener("click", () => {
-  modoFavoritos = !modoFavoritos;
-
-  if (modoFavoritos) {
-    btnFav.classList.remove("btn-pdf");
-    btnFav.classList.add("btn-save");
-  } else {
-    btnFav.classList.remove("btn-save");
-    btnFav.classList.add("btn-pdf");
-  }
-
-  buildTable();
-  loadData();
-});
-
+  btnFav.addEventListener("click", () => {
+    modoFavoritos = !modoFavoritos;
+    btnFav.classList.toggle("activo", modoFavoritos);
+    buildTable();
+  });
 
   document.getElementById("buscar").addEventListener("input", applySearchFilter);
 
+  // 👉 SOLO ESTO
   buildTable();
-  loadData();
 
-  // ✅ SPLASH DENTRO DEL DOMContentLoaded
+  // 👉 SPLASH SIEMPRE SE CIERRA
   const splash = document.getElementById("splash");
   setTimeout(() => {
     splash.classList.add("hidden");
@@ -804,6 +795,7 @@ btnFav.addEventListener("click", () => {
     }, 400);
   }, 800);
 });
+
 
 
       if ("serviceWorker" in navigator) {
