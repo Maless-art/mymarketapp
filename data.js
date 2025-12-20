@@ -53,6 +53,15 @@ td, th {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.mm-dot {
+  color: #999 !important;
+  opacity: 0.25;
+}
+
+.mm-dot.zero {
+  color: #e53935 !important;
+  opacity: 1;
+}
 
 
     .mm-star { margin-right: 4px; cursor: pointer; }
@@ -208,6 +217,20 @@ function buildTable() {
       const dot = document.createElement("span");
       dot.textContent = "●";
       tdDot.appendChild(dot);
+function updateDot() {
+  const val = Number(stockInput.value || 0);
+if (val === 0) {
+  dot.style.color = "#e53935"; // rojo
+  dot.style.opacity = "1";
+} else {
+  dot.style.color = "#999";    // gris
+  dot.style.opacity = "0.25";
+}
+}
+
+updateDot();
+stockInput.addEventListener("input", updateDot);
+
 
       // ✓ CHECK
       const tdCheck = document.createElement("td");
